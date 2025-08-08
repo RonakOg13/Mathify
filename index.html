@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Mathify</title>
+<style>
+  :root{
+    --bg1:#0f172a;
+    --bg2:#0b3a5b;
+    --card:#0f172a22;
+    --accent:#6ee7b7;
+    --glass: rgba(255,255,255,0.06);
+    --glass-2: rgba(255,255,255,0.03);
+    --text:#f8fafc;
+    --muted:#cbd5e1;
+    --glass-border: rgba(255,255,255,0.05);
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family:Inter, "Segoe UI", Roboto, Arial;
+    background: linear-gradient(135deg, #0b1220 0%, #0b3a5b 50%, #184e63 100%);
+    color:var(--text);
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+    min-height:100vh;
+    padding:28px;
+    display:flex;
+    justify-content:center;
+  }
+  .container{
+    width:100%;
+    max-width:1100px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    border-radius:16px;
+    padding:22px;
+    box-shadow: 0 10px 30px rgba(2,6,23,0.6), inset 0 1px 0 rgba(255,255,255,0.02);
+    border:1px solid rgba(255,255,255,0.04);
+  }
+  header{
+    display:flex;
+    gap:16px;
+    align-items:center;
+    justify-content:space-between;
+  }
+  .brand{
+    display:flex; gap:14px; align-items:center;
+  }
+  .logo{
+    width:56px;height:56px;border-radius:12px;
+    background: linear-gradient(135deg,#7c3aed,#06b6d4);
+    display:flex;align-items:center;justify-content:center;font-weight:700;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.4);
+  }
+  .logo span{font-size:20px; color:white}
+  h1{font-size:20px;margin:0}
+  p.lead{margin:0;color:var(--muted);font-size:13px}
+  .top-actions{display:flex;gap:8px;align-items:center}
+  .btn{
+    background:transparent;border:1px solid var(--glass-border);padding:8px 12px;border-radius:10px;color:var(--text);
+    cursor:pointer;font-weight:600;font-size:13px;
+  }
+  .btn.primary{
+    background: linear-gradient(90deg,#06b6d4,#7c3aed);
+    border:none;color:white;box-shadow:0 8px 20px rgba(124,58,237,0.18);
+  }
+
+  main{
+    margin-top:18px;display:grid;grid-template-columns:360px 1fr;gap:18px;
+  }
+  /* left menu */
+  nav.menu{
+    background:var(--glass);
+    padding:12px;border-radius:12px;border:1px solid var(--glass-border);
+    min-height:420px;
+  }
+  .menu h3{margin:6px 0 10px;color:var(--accent)}
+  .menu button{
+    width:100%;text-align:left;background:transparent;border:none;padding:10px 8px;border-radius:8px;color:var(--text);
+    display:flex;gap:10px;align-items:center;cursor:pointer;font-weight:600;
+  }
+  .menu button:hover{background:var(--glass-2)}
+  .menu button.active{background:linear-gradient(90deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.04)}
+
+  section.tools{
+    background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    padding:16px;border-radius:12px; border:1px solid var(--glass-border);
+    min-height:420px;
+  }
+  .grid{
+    display:grid;grid-template-columns:repeat(auto-fit, minmax(220px,1fr));gap:12px;
+  }
+  .card{
+    background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.03);
+  }
+  label{display:block;color:var(--muted);font-size:13px;margin-bottom:6px}
+  input[type="number"], input[type="text"], select{
+    width:100%;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);
+    background:rgba(255,255,255,0.02);color:var(--text);font-size:15px;
+  }
+  .row{display:flex;gap:8px;align-items:center}
+  .row .half{flex:1}
+  .calc-display{background:rgba(255,255,255,0.02);padding:14px;border-radius:8px;border:1px solid rgba(255,255,255,0.03);font-size:18px;color:var(--accent);min-height:46px}
+  .ops{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+  .ops button{flex:1;padding:10px;border-radius:8px;border:none;background:rgba(255,255,255,0.03);color:var(--text);cursor:pointer;font-weight:700}
+  .ops button.operator{background:linear-gradient(90deg,#f97316,#fb7185);color:white}
+  .result{margin-top:10px;font-weight:800;color:#fff}
+  .small{font-size:13px;color:var(--muted)}
+  .footer{
+    margin-top:14px;display:flex;justify-content:space-between;align-items:center;color:var(--muted);font-size:13px;
+  }
+
+  /* responsive */
+  @media (max-width:880px){
+    main{grid-template-columns:1fr; padding-bottom:24px}
+    nav.menu{order:2}
+    section.tools{order:1}
+  }
+
+  /* tiny helpers */
+  .hint{font-size:12px;color:var(--muted);margin-top:6px}
+  .copy-btn{background:transparent;border:1px dashed rgba(255,255,255,0.06);padding:6px 8px;border-radius:8px;cursor:pointer;color:var(--muted)}
+</style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="brand">
+        <div class="logo"><span>MY</span></div>
+        <div>
+          <h1>Mathify — All-in-One Math Tools</h1>
+          <p class="lead">Calculator, converters, and quick math helpers — lightweight & colorful.</p>
+        </div>
+      </div>
+      <div class="top-actions">
+        <button class="btn" id="themeToggle">🌙 Theme</button>
+        <button class="btn primary" onclick="alert('Good luck building! — Mathie')">Start</button>
+      </div>
+    </header>
+
+    <main>
+      <nav class="menu">
+        <h3>Tools</h3>
+        <button class="active" data-tool="calculator">🧮 Calculator</button>
+        <button data-tool="converters">🔁 Converters</button>
+        <button data-tool="extras">✨ Extras</button>
+        <hr style="border:none;border-top:1px solid rgba(255,255,255,0.04);margin:10px 0">
+        <p class="small">Tip: Use your keyboard in calculator area. Click tool names to switch.</p>
+      </nav>
+
+      <section class="tools">
+        <!-- CALCULATOR -->
+        <div id="calculator" class="tool-section">
+          <div class="grid">
+            <div class="card">
+              <label>Expression / Basic Calculator</label>
+              <div contenteditable="true" id="calcInput" class="calc-display" role="textbox" aria-multiline="true" spellcheck="false">0</div>
+              <div class="ops" style="margin-top:10px">
+                <button onclick="appendCalc('7')">7</button>
+                <button onclick="appendCalc('8')">8</button>
+                <button onclick="appendCalc('9')">9</button>
+                <button class="operator" onclick="appendCalc('/')">÷</button>
+
+                <button onclick="appendCalc('4')">4</button>
+                <button onclick="appendCalc('5')">5</button>
+                <button onclick="appendCalc('6')">6</button>
+                <button class="operator" onclick="appendCalc('*')">×</button>
+
+                <button onclick="appendCalc('1')">1</button>
+                <button onclick="appendCalc('2')">2</button>
+                <button onclick="appendCalc('3')">3</button>
+                <button class="operator" onclick="appendCalc('-')">−</button>
+
+                <button onclick="appendCalc('0')">0</button>
+                <button onclick="appendCalc('.')">.</button>
+                <button onclick="calculateResult()" style="background:linear-gradient(90deg,#34d399,#06b6d4);color:white">=</button>
+                <button class="operator" onclick="appendCalc('+')">+</button>
+
+                <button onclick="doCalcFunc('sqrt')">√</button>
+                <button onclick="doCalcFunc('pow')">xʸ</button>
+                <button onclick="doCalcFunc('%')">%</button>
+                <button onclick="doCalcFunc('!')">n!</button>
+
+                <button onclick="doCalcFunc('sin')">sin</button>
+                <button onclick="doCalcFunc('cos')">cos</button>
+                <button onclick="doCalcFunc('tan')">tan</button>
+                <button onclick="doCalcFunc('ln')">ln</button>
+              </div>
+              <div class="result" id="calcResult">Result: —</div>
+              <div style="display:flex;gap:8px;margin-top:8px">
+                <button class="btn" onclick="clearCalc()">Clear</button>
+                <button class="btn" onclick="copyText('calcResult')">Copy Result</button>
+              </div>
+            </div>
+
+            <div class="card">
+              <label>Quick numeric inputs</label>
+              <div style="display:grid;gap:8px">
+                <div class="row">
+                  <input id="n1" type="number" placeholder="Number 1">
+                  <input id="n2" type="number" placeholder="Number 2">
+                </div>
+                <div class="row">
+                  <button class="btn" onclick="quickOp('+')">Add</button>
+                  <button class="btn" onclick="quickOp('-')">Sub</button>
+                  <button class="btn" onclick="quickOp('*')">Mul</button>
+                  <button class="btn" onclick="quickOp('/')">Div</button>
+                </div>
+                <p class="hint">Try: 12.5 × 3 → press Multiply</p>
+                <div class="row">
+                  <input id="percentBase" type="number" placeholder="Base (for %)">
+                  <input id="percentOf" type="number" placeholder="Percent (e.g., 20)">
+                </div>
+                <div style="display:flex;gap:8px;margin-top:6px">
+                  <button class="btn" onclick="percentCalc()">Percent →</button>
+                  <button class="btn" onclick="percentFromTotal()">Find %</button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- CONVERTERS -->
+        <div id="converters" class="tool-section" style="display:none">
+          <div class="grid">
+            <!-- LENGTH -->
+            <div class="card">
+              <label>Length Converter</label>
+              <div class="row">
+                <input id="lengthVal" type="number" placeholder="Value">
+              </div>
+              <div class="row" style="margin-top:8px">
+                <select id="lengthFrom">
+                  <option value="m">Meters (m)</option>
+                  <option value="km">Kilometers (km)</option>
+                  <option value="cm">Centimeters (cm)</option>
+                  <option value="mm">Millimeters (mm)</option>
+                  <option value="mi">Miles (mi)</option>
+                  <option value="yd">Yards (yd)</option>
+                  <option value="ft">Feet (ft)</option>
+                  <option value="in">Inches (in)</option>
+                </select>
+                <select id="lengthTo">
+                  <option value="km">Kilometers (km)</option>
+                  <option value="m">Meters (m)</option>
+                  <option value="cm">Centimeters (cm)</option>
+                  <option value="mm">Millimeters (mm)</option>
+                  <option value="mi">Miles (mi)</option>
+                  <option value="yd">Yards (yd)</option>
+                  <option value="ft">Feet (ft)</option>
+                  <option value="in">Inches (in)</option>
+                </select>
+              </div>
+              <div style="display:flex;gap:8px;margin-top:8px">
+                <button class="btn primary" onclick="convertLength()">Convert</button>
+                <button class="btn" onclick="swapSelect('lengthFrom','lengthTo')">Swap</button>
+              </div>
+              <p id="lengthRes" class="hint">Result: —</p>
+            </div>
+
+            <!-- WEIGHT -->
+            <div class="card">
+              <label>Weight Converter</label>
+              <input id="weightVal" type="number" placeholder="Value">
+              <div class="row" style="margin-top:8px">
+                <select id="weightFrom">
+                  <option value="kg">Kilogram (kg)</option>
+                  <option value="g">Gram (g)</option>
+                  <option value="lb">Pound (lb)</option>
+                  <option value="oz">Ounce (oz)</option>
+                </select>
+                <select id="weightTo">
+                  <option value="g">Gram (g)</option>
+                  <option value="kg">Kilogram (kg)</option>
+                  <option value="lb">Pound (lb)</option>
+                  <option value="oz">Ounce (oz)</option>
+                </select>
+              </div>
+              <div style="display:flex;gap:8px;margin-top:8px">
+                <button class="btn primary" onclick="convertWeight()">Convert</button>
+                <button class="btn" onclick="swapSelect('weightFrom','weightTo')">Swap</button>
+              </div>
+              <p id="weightRes" class="hint">Result: —</p>
+            </div>
+
+            <!-- TEMPERATURE -->
+            <div class="card">
+              <label>Temperature Converter</label>
+              <input id="tempVal" type="number" placeholder="Value">
+              <div class="row" style="margin-top:8px">
+                <select id="tempFrom">
+                  <option value="C">Celsius (°C)</option>
+                  <option value="F">Fahrenheit (°F)</option>
+                  <option value="K">Kelvin (K)</option>
+                </select>
+                <select id="tempTo">
+                  <option value="F">Fahrenheit (°F)</option>
+                  <option value="C">Celsius (°C)</option>
+                  <option value="K">Kelvin (K)</option>
+                </select>
+              </div>
+              <div style="display:flex;gap:8px;margin-top:8px">
+                <button class="btn primary" onclick="convertTemp()">Convert</button>
+                <button class="btn" onclick="swapSelect('tempFrom','tempTo')">Swap</button>
+              </div>
+              <p id="tempRes" class="hint">Result: —</p>
+            </div>
+
+            <!-- AREA -->
+            <div class="card">
+              <label>Area Converter</label>
+              <input id="areaVal" type="number" placeholder="Value">
+              <div class="row" style="margin-top:8px">
+                <select id="areaFrom">
+                  <option value="m2">Square meter (m²)</option>
+                  <option value="km2">Square kilometer (km²)</option>
+                  <option value="cm2">Square centimeter (cm²)</option>
+                  <option value="acre">Acre</option>
+                </select>
+                <select id="areaTo">
+                  <option value="km2">Square kilometer (km²)</option>
+                  <option value="m2">Square meter (m²)</option>
+                  <option value="cm2">Square centimeter (cm²)</option>
+                  <option value="acre">Acre</option>
+                </select>
+              </div>
+              <div style="display:flex;gap:8px;margin-top:8px">
+                <button class="btn primary" onclick="convertArea()">Convert</button>
+                <button class="btn" onclick="swapSelect('areaFrom','areaTo')">Swap</button>
+              </div>
+              <p id="areaRes" class="hint">Result: —</p>
+            </div>
+
+            <!-- VOLUME -->
+            <div class="card">
+              <label>Volume Converter</label>
+              <input id="volVal" type="number" placeholder="Value">
+              <div class="row" style="margin-top:8px">
+                <select id="volFrom">
+                  <option value="l">Liter (L)</option>
+                  <option value="ml">Milliliter (mL)</option>
+                  <option value="m3">Cubic meter (m³)</option>
+                  <option value="gal">US Gallon (gal)</option>
+                </select>
+                <select id="volTo">
+                  <option value="ml">Milliliter (mL)</option>
+                  <option value="l">Liter (L)</option>
+                  <option value="m3">Cubic meter (m³)</option>
+                  <option value="gal">US Gallon (gal)</option>
+                </select>
+              </div>
+              <div style="display:flex;gap:8px;margin-top:8px">
+                <button class="btn primary" onclick="convertVol()">Convert</button>
+                <button class="btn" onclick="swapSelect('volFrom','volTo')">Swap</button>
+              </div>
+              <p id="volRes" class="hint">Result: —</p>
+            </div>
+
+            <!-- SPEED -->
+            <div class="card">
+              <label>Speed Converter</label>
+              <input id="speedVal" type="number" placeholder="Value">
+              <div class="row" style="margin-top:8px">
+                <select id="speedFrom">
+                  <option value="mps">m/s</option>
+                  <option value="kph">km/h</option>
+                  <option value="mph">mph</option>
+                </select>
+                <select id="speedTo">
+                  <option value="kph">km/h</option>
+                  <option value="mps">m/s</option>
+                  <option value="mph">mph</option>
+                </select>
+              </div>
+              <div style="display:flex;gap:8px;margin-top:8px">
+                <button class="btn primary" onclick="convertSpeed()">Convert</button>
+                <button class="btn" onclick="swapSelect('speedFrom','speedTo')">Swap</button>
+              </div>
+              <p id="speedRes" class="hint">Result: —</p>
+            </div>
+
+            <!-- TIME -->
+            <div class="card">
+              <label>Time Converter</label>
+              <input id="timeVal" type="number" placeholder="Value">
+              <div class="row" style="margin-top:8px">
+                <select id="timeFrom">
+                  <option value="s">Seconds (s)</option>
+                  <option value="min">Minutes (min)</option>
+                  <option value="h">Hours (h)</option>
+                  <option value="d">Days (d)</option>
+                </select>
+                <select id="timeTo">
+                  <option value="min">Minutes (min)</option>
+                  <option value="s">Seconds (s)</option>
+                  <option value="h">Hours (h)</option>
+                  <option value="d">Days (d)</option>
+                </select>
+              </div>
+              <div style="display:flex;gap:8px;margin-top:8px">
+                <button class="btn primary" onclick="convertTime()">Convert</button>
+                <button class="btn" onclick="swapSelect('timeFrom','timeTo')">Swap</button>
+              </div>
+              <p id="timeRes" class="hint">Result: —</p>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- EXTRAS -->
+        <div id="extras" class="tool-section" style="display:none">
+          <div class="grid">
+
+            <div class="card">
+              <label>BMI Calculator</label>
+              <div class="row">
+                <input id="bmiWeight" type="number" placeholder="Weight (kg)">
+                <input id="bmiHeight" type="number" placeholder="Height (cm)">
+              </div>
+              <div style="display:flex;gap:8px;margin-top:8px">
+                <button class="btn primary" onclick="calcBMI()">Calculate BMI</button>
+                <button class="btn" onclick="clearBMI()">Clear</button>
+              </div>
+              <p id="bmiRes" class="hint">Result: —</p>
+            </div>
+
+            <div class="card">
+              <label>Percent Tool</label>
+              <input id="pVal" type="number" placeholder="Value">
+              <div class="row" style="margin-top:8px">
+                <input id="pPerc" type="number" placeholder="Percent (%)">
+                <button class="btn primary" onclick="calcPercentValue()">→</button>
+              </div>
+              <p id="pRes" class="hint">Result: —</p>
+            </div>
+
+            <div class="card">
+              <label>Quick Facts</label>
+              <p class="hint">This app runs locally — no internet needed. Perfect to expand later (history, charts, more units).</p>
+              <div style="display:flex;gap:8px;margin-top:8px">
+                <button class="btn" onclick="alert('You can add more tools anytime!')">Add Tool</button>
+                <button class="btn" onclick="copyText('calcResult')">Copy last calc</button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </section>
+    </main>
+
+    <div class="footer" style="margin-top:18px">
+      <div>Made with ❤️ — Mathify</div>
+      <div class="small">Save this file and open in browser — works offline.</div>
+    </div>
+  </div>
+
+<script>
+  // --- UI: switching tools ---
+  document.querySelectorAll('.menu button').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('.menu button').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      const tool = btn.dataset.tool;
+      document.querySelectorAll('.tool-section').forEach(s=> s.style.display='none');
+      if(tool === 'calculator') document.getElementById('calculator').style.display='block';
+      if(tool === 'converters') document.getElementById('converters').style.display='block';
+      if(tool === 'extras') document.getElementById('extras').style.display='block';
+    });
+  });
+
+  // --- Calc logic ---
+  const calcInput = document.getElementById('calcInput');
+  const calcResult = document.getElementById('calcResult');
+
+  function appendCalc(x){
+    if(calcInput.innerText === '0') calcInput.innerText = '';
+    calcInput.innerText += x;
+    calcInput.focus();
+  }
+
+  function clearCalc(){
+    calcInput.innerText = '0';
+    calcResult.innerText = 'Result: —';
+  }
+
+  function calculateResult(){
+    let expr = calcInput.innerText.replace(/×/g,'*').replace(/÷/g,'/');
+    try{
+      // basic eval safety: allow only numbers and operators
+      if(!/^[0-9+\-*/().%^ eE]*$/.test(expr)){
+        // allow functions invoked below only
+      }
+      // replace ^ with Math.pow
+      expr = expr.replace(/\^/g, '**');
+      // evaluate using Function to be slightly safer
+      const val = Function('"use strict";return ('+expr+')')();
+      calcResult.innerText = 'Result: ' + (Number.isFinite(val) ? val : 'Error');
+    }catch(e){
+      calcResult.innerText = 'Result: Error';
+    }
+  }
+
+  // some math functions
+  function doCalcFunc(name){
+    let s = calcInput.innerText.trim();
+    if(s === '0') s = '';
+    if(name === 'sqrt'){
+      appendCalc('Math.sqrt(');
+      return;
+    }
+    if(name === 'pow'){
+      appendCalc('**');
+      return;
+    }
+    if(name === '%'){
+      appendCalc('*0.01');
+      calculateResult();
+      return;
+    }
+    if(name === '!'){
+      // factorial of last number
+      try{
+        let n = parseInt(prompt('Enter a non-negative integer:','5'));
+        if(isNaN(n) || n<0) throw 'bad';
+        let res=1;
+        for(let i=2;i<=n;i++)res*=i;
+        calcResult.innerText = 'Result: ' + res;
+      }catch(e){ calcResult.innerText='Result: Error' }
+      return;
+    }
+    if(['sin','cos','tan','ln'].includes(name)){
+      appendCalc('Math.' + (name==='ln' ? 'log' : name) + '(');
+      return;
+    }
+  }
+
+  // keyboard support
+  calcInput.addEventListener('keydown', (e)=>{
+    if(e.key === 'Enter'){ e.preventDefault(); calculateResult(); }
+    if(e.key === 'Escape'){ clearCalc(); }
+  });
+
+  // Quick ops
+  function quickOp(op){
+    const a = parseFloat(document.getElementById('n1').value);
+    const b = parseFloat(document.getElementById('n2').value);
+    if(isNaN(a) || isNaN(b)){ alert('Enter both numbers'); return; }
+    let r;
+    if(op==='+') r=a+b;
+    if(op==='-') r=a-b;
+    if(op==='*') r=a*b;
+    if(op==='/') r = b===0 ? 'Cannot /0' : a/b;
+    calcResult.innerText = 'Result: ' + r;
+  }
+
+  // percent tools
+  function percentCalc(){
+    const base = parseFloat(document.getElementById('percentBase').value);
+    const perc = parseFloat(document.getElementById('percentOf').value);
+    if(isNaN(base) || isNaN(perc)){ alert('Enter values'); return; }
+    const r = base * (perc/100);
+    document.getElementById('pRes').innerText = 'Result: ' + r;
+  }
+  function percentFromTotal(){
+    const base = parseFloat(document.getElementById('percentBase').value);
+    const part = parseFloat(document.getElementById('percentOf').value);
+    if(isNaN(base) || isNaN(part)){ alert('Enter values'); return; }
+    const r = (part/base)*100;
+    document.getElementById('pRes').innerText = 'Result: ' + r + ' %';
+  }
+
+  // --- Converters implementations ---
+  function swapSelect(a,b){
+    const s1 = document.getElementById(a);
+    const s2 = document.getElementById(b);
+    const t = s1.value; s1.value = s2.value; s2.value = t;
+  }
+
+  // utilities: convert units via base units
+  const lengthToMeters = {
+    m:1, km:1000, cm:0.01, mm:0.001, mi:1609.344, yd:0.9144, ft:0.3048, in:0.0254
+  };
+  function convertLength(){
+    const v = parseFloat(document.getElementById('lengthVal').value);
+    const from = document.getElementById('lengthFrom').value;
+    const to = document.getElementById('lengthTo').value;
+    if(isNaN(v)){ alert('Enter a value'); return; }
+    const meters = v * (lengthToMeters[from] || 1);
+    const out = meters / (lengthToMeters[to] || 1);
+    document.getElementById('lengthRes').innerText = 'Result: ' + round(out) + ' ' + to;
+  }
+
+  const weightToKg = { kg:1, g:0.001, lb:0.45359237, oz:0.028349523125 };
+  function convertWeight(){
+    const v = parseFloat(document.getElementById('weightVal').value);
+    const from = document.getElementById('weightFrom').value;
+    const to = document.getElementById('weightTo').value;
+    if(isNaN(v)){ alert('Enter a value'); return; }
+    const kg = v * (weightToKg[from] || 1);
+    const out = kg / (weightToKg[to] || 1);
+    document.getElementById('weightRes').innerText = 'Result: ' + round(out) + ' ' + to;
+  }
+
+  function convertTemp(){
+    const v = parseFloat(document.getElementById('tempVal').value);
+    const from = document.getElementById('tempFrom').value;
+    const to = document.getElementById('tempTo').value;
+    if(isNaN(v)){ alert('Enter a value'); return; }
+    let c;
+    if(from === 'C') c = v;
+    if(from === 'F') c = (v - 32) * 5/9;
+    if(from === 'K') c = v - 273.15;
+    let out;
+    if(to === 'C') out = c;
+    if(to === 'F') out = (c * 9/5) + 32;
+    if(to === 'K') out = c + 273.15;
+    document.getElementById('tempRes').innerText = 'Result: ' + round(out) + ' ' + to;
+  }
+
+  const areaToM2 = { m2:1, km2:1e6, cm2:0.0001, acre:4046.8564224 };
+  function convertArea(){
+    const v = parseFloat(document.getElementById('areaVal').value);
+    const from = document.getElementById('areaFrom').value;
+    const to = document.getElementById('areaTo').value;
+    if(isNaN(v)){ alert('Enter a value'); return; }
+    const m2 = v * (areaToM2[from] || 1);
+    const out = m2 / (areaToM2[to] || 1);
+    document.getElementById('areaRes').innerText = 'Result: ' + round(out) + ' ' + to;
+  }
+
+  const volToL = { l:1, ml:0.001, m3:1000, gal:3.785411784 }; // gal = US
+  function convertVol(){
+    const v = parseFloat(document.getElementById('volVal').value);
+    const from = document.getElementById('volFrom').value;
+    const to = document.getElementById('volTo').value;
+    if(isNaN(v)){ alert('Enter a value'); return; }
+    const l = v * (volToL[from] || 1);
+    const out = l / (volToL[to] || 1);
+    document.getElementById('volRes').innerText = 'Result: ' + round(out) + ' ' + to;
+  }
+
+  // speed: convert via m/s
+  const speedToMps = { mps:1, kph:1/3.6, mph:0.44704 };
+  function convertSpeed(){
+    const v = parseFloat(document.getElementById('speedVal').value);
+    const from = document.getElementById('speedFrom').value;
+    const to = document.getElementById('speedTo').value;
+    if(isNaN(v)){ alert('Enter a value'); return; }
+    const mps = v * (speedToMps[from] || 1);
+    const out = mps / (speedToMps[to] || 1);
+    document.getElementById('speedRes').innerText = 'Result: ' + round(out) + ' ' + to;
+  }
+
+  const timeToS = { s:1, min:60, h:3600, d:86400 };
+  function convertTime(){
+    const v = parseFloat(document.getElementById('timeVal').value);
+    const from = document.getElementById('timeFrom').value;
+    const to = document.getElementById('timeTo').value;
+    if(isNaN(v)){ alert('Enter a value'); return; }
+    const s = v * (timeToS[from] || 1);
+    const out = s / (timeToS[to] || 1);
+    document.getElementById('timeRes').innerText = 'Result: ' + round(out) + ' ' + to;
+  }
+
+  // --- Extras ---
+  function calcBMI(){
+    const w = parseFloat(document.getElementById('bmiWeight').value);
+    const h = parseFloat(document.getElementById('bmiHeight').value);
+    if(isNaN(w) || isNaN(h) || h<=0){ alert('Enter valid weight & height'); return; }
+    const meters = h/100;
+    const bmi = w / (meters*meters);
+    let cat = '';
+    if(bmi < 18.5) cat='Underweight';
+    else if(bmi < 25) cat='Normal';
+    else if(bmi < 30) cat='Overweight';
+    else cat='Obese';
+    document.getElementById('bmiRes').innerText = 'Result: ' + round(bmi) + ' ('+cat+')';
+  }
+  function clearBMI(){ document.getElementById('bmiWeight').value=''; document.getElementById('bmiHeight').value=''; document.getElementById('bmiRes').innerText='Result: —' }
+
+  function calcPercentValue(){
+    const v = parseFloat(document.getElementById('pVal').value);
+    const p = parseFloat(document.getElementById('pPerc').value);
+    if(isNaN(v) || isNaN(p)){ alert('Enter values'); return; }
+    document.getElementById('pRes').innerText = 'Result: ' + round(v * (p/100));
+  }
+
+  // small helpers
+  function round(x){
+    if(typeof x !== 'number' || !Number.isFinite(x)) return x;
+    if(Math.abs(x) < 1e-6) return 0;
+    return Math.round(x * 100000) / 100000;
+  }
+  function copyText(id){
+    const el = document.getElementById(id);
+    const txt = el.innerText || el.textContent;
+    navigator.clipboard?.writeText(txt).then(()=> alert('Copied to clipboard'), ()=> alert('Copy failed'));
+  }
+
+  // theme toggle (simple)
+  document.getElementById('themeToggle').addEventListener('click', ()=>{
+    document.body.classList.toggle('light');
+    if(document.body.classList.contains('light')){
+      document.body.style.background = 'linear-gradient(135deg,#f8fafc,#e6eef6)';
+      document.querySelectorAll('.container, .card').forEach(x=> x.style.color='#061421');
+      // quick light tweak: not fully implemented - default is dark
+    } else {
+      document.body.style.background = 'linear-gradient(135deg, #0b1220 0%, #0b3a5b 50%, #184e63 100%)';
+      document.querySelectorAll('.container, .card').forEach(x=> x.style.color='');
+    }
+  });
+
+  // small safety: prevent paste html inside calc display
+  calcInput.addEventListener('paste', (e)=>{
+    e.preventDefault();
+    const txt = (e.clipboardData || window.clipboardData).getData('text');
+    document.execCommand('insertText', false, txt);
+  });
+
+  // initialize
+  clearCalc();
+</script>
+</body>
+</html>
